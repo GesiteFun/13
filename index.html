@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find the Equation (Sangat Sulit)</title>
+    <style>
+        /* Reset dan Basic Styling */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            height: 100%;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* Gradien: Mungkin sedikit lebih gelap untuk nuansa 'sulit' */
+            background: linear-gradient(135deg, #5f72bd, #9b6ab3);
+            color: #333;
+            padding: 15px;
+            overflow-y: auto;
+        }
+
+        /* Container Utama Game */
+        .game-container {
+            background-color: rgba(255, 255, 255, 0.92); /* Sedikit lebih opaque */
+            padding: 30px 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); /* Shadow lebih tebal */
+            text-align: center;
+            width: 100%;
+            max-width: 600px; /* Sedikit lebih lebar untuk angka besar */
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        h1 {
+            margin-bottom: 25px;
+            color: #404040;
+            font-weight: bold;
+        }
+
+        /* Area Persamaan */
+        .equation {
+            font-size: 2.5em; /* Sedikit lebih kecil untuk akomodasi angka besar */
+            font-weight: bold;
+            margin: 30px 0;
+            padding: 15px;
+            background-color: rgba(235, 235, 235, 0.8); /* Background sedikit beda */
+            border-radius: 10px;
+            min-height: 70px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            animation: slideIn 0.4s ease-out;
+            overflow-wrap: break-word; /* Handle angka sangat panjang */
+            word-break: break-all;
+        }
+
+        .equation span {
+            display: inline-block;
+            margin: 0 8px; /* Jarak sedikit dikurangi */
+        }
+
+        .equation .operator-placeholder {
+            display: inline-block;
+            width: 45px; /* Sedikit lebih kecil */
+            height: 45px;
+            line-height: 45px;
+            border: 2px dashed #999;
+            border-radius: 5px;
+            color: #999;
+            font-size: 0.7em;
+            margin: 0 12px;
+            vertical-align: middle;
+        }
+
+        /* Tombol Operator */
+        .operators {
+            margin: 30px 0;
+            display: flex;
+            justify-content: center;
+            gap: 12px; /* Jarak antar tombol sedikit dikurangi */
+            flex-wrap: wrap;
+        }
+
+        .operator-btn {
+            font-size: 1.8em; /* Sedikit lebih kecil */
+            font-weight: bold;
+            width: 65px; /* Sedikit lebih kecil */
+            height: 65px;
+            border: none;
+            border-radius: 10px;
+            background-color: #5f72bd; /* Sesuaikan dengan gradien baru */
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .operator-btn:hover {
+            background-color: #4d5d9f;
+            transform: translateY(-2px);
+        }
+
+        .operator-btn:active {
+            background-color: #3c4a81;
+            transform: translateY(1px);
+        }
+
+        .operator-btn:disabled {
+            background-color: #b0b0b0;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Area Feedback */
+        .feedback {
+            min-height: 30px;
+            margin: 20px 0;
+            font-size: 1.1em; /* Sedikit lebih kecil */
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .feedback.show {
+            opacity: 1;
+        }
+
+        .feedback.correct {
+            color: #228b22; /* Forest Green */
+        }
+
+        .feedback.incorrect {
+            color: #b22222; /* Firebrick */
+        }
+
+        /* Area Skor */
+        .score-area {
+            margin-top: 25px;
+            font-size: 1.1em;
+            color: #555;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .score-area span {
+            font-weight: bold;
+            color: #333;
+            display: inline-block;
+            min-width: 40px;
+            animation: scoreUpdate 0.3s ease-out;
+        }
+
+        /* Tombol Play Again */
+        #play-again {
+            margin-top: 30px;
+            padding: 12px 25px;
+            font-size: 1.1em;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            background-color: #e07a5f; /* Warna lain */
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+
+        #play-again:hover {
+            background-color: #d46a4d;
+            transform: translateY(-2px);
+        }
+
+         #play-again:active {
+            background-color: #c85a3b;
+            transform: translateY(1px);
+         }
+
+        /* Animasi */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes slideIn {
+             from { opacity: 0; transform: translateY(-15px); }
+             to { opacity: 1; transform: translateY(0); }
+        }
+
+         @keyframes scoreUpdate {
+             0% { transform: scale(1); }
+             50% { transform: scale(1.2); }
+             100% { transform: scale(1); }
+         }
+
+        /* Responsiveness */
+        @media (max-width: 600px) {
+            .game-container {
+                padding: 20px;
+                max-width: 95%; /* Ambil hampir full width */
+            }
+
+            h1 {
+                font-size: 1.4em;
+                margin-bottom: 20px;
+            }
+
+            .equation {
+                font-size: 1.8em; /* Lebih kecil lagi di mobile */
+                margin: 20px 0;
+                padding: 10px;
+                min-height: 60px;
+            }
+
+            .equation .operator-placeholder {
+                width: 40px;
+                height: 40px;
+                line-height: 40px;
+                font-size: 0.6em;
+                margin: 0 10px;
+            }
+
+            .operators {
+                gap: 8px; /* Lebih rapat */
+                margin: 25px 0;
+            }
+
+            .operator-btn {
+                font-size: 1.6em;
+                width: 55px; /* Lebih kecil */
+                height: 55px;
+            }
+
+            .feedback {
+                font-size: 1em;
+                margin: 15px 0;
+            }
+
+            .score-area {
+                font-size: 1em;
+                margin-top: 20px;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            #play-again {
+                margin-top: 25px;
+                padding: 10px 20px;
+                font-size: 1em;
+            }
+        }
+         @media (max-width: 420px) {
+              .equation {
+                  font-size: 1.6em; /* Sesuaikan lagi */
+              }
+              .operator-btn {
+                  width: 50px; /* Paling kecil */
+                  height: 50px;
+                  font-size: 1.5em;
+              }
+              .operators {
+                 gap: 5px; /* Sangat rapat */
+              }
+         }
+
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <h1>Find the Equation (Sangat Sulit)</h1>
+
+        <div class="equation">
+            <span id="numA">A</span>
+            <span class="operator-placeholder">?</span>
+            <span id="numB">B</span>
+            <span>=</span>
+            <span id="numC">C</span>
+        </div>
+
+        <div class="operators">
+            <button class="operator-btn" data-op="+">+</button>
+            <button class="operator-btn" data-op="-">-</button>
+            <button class="operator-btn" data-op="*">×</button>
+            <button class="operator-btn" data-op="/">/</button>
+            <button class="operator-btn" data-op="%">%</button> </div>
+
+        <div class="feedback" id="feedback"></div>
+
+        <div class="score-area">
+            <div>Skor Saat Ini: <span id="current-score">0</span></div>
+            <div>Skor Tertinggi: <span id="high-score">0</span></div>
+        </div>
+
+        <button id="play-again">Play Again</button>
+    </div>
+
+    <script>
+        // --- DOM Elements ---
+        const numAElement = document.getElementById('numA');
+        const numBElement = document.getElementById('numB');
+        const numCElement = document.getElementById('numC');
+        const operatorButtons = document.querySelectorAll('.operator-btn'); // Akan mengambil semua 5 tombol
+        const feedbackElement = document.getElementById('feedback');
+        const currentScoreElement = document.getElementById('current-score');
+        const highScoreElement = document.getElementById('high-score');
+        const playAgainButton = document.getElementById('play-again');
+        const equationElement = document.querySelector('.equation');
+
+        // --- Game State ---
+        let currentScore = 0;
+        let highScore = 0;
+        let currentA, currentB, currentC;
+        let correctOperator;
+        let previousEquations = new Set();
+        let isWaiting = false;
+        let feedbackTimeout;
+
+        // Update OPERATORS dan DISPLAY_OPERATORS
+        const OPERATORS = ['+', '-', '*', '/', '%']; // Modulo ditambahkan
+        const DISPLAY_OPERATORS = { '+': '+', '-': '-', '*': '×', '/': '/', '%': '%' };
+
+        // --- Utility Functions ---
+        function getRandomInt(min, max) {
+            min = Math.ceil(min);
+            max = Math.floor(max);
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        // --- Local Storage ---
+        function loadHighScore() {
+            const savedHighScore = localStorage.getItem('findTheEquationHardHighScore'); // Key berbeda untuk high score mode sulit
+            highScore = savedHighScore ? parseInt(savedHighScore, 10) : 0;
+            updateScoreDisplay();
+        }
+
+        function saveHighScore() {
+            localStorage.setItem('findTheEquationHardHighScore', highScore.toString());
+        }
+
+        // --- Game Logic ---
+        function generateEquation() {
+            let a, b, c, op, equationKey;
+            let attempts = 0;
+
+            while (attempts < 150) { // Tingkatkan batas percobaan
+                // Rentang angka diperbesar
+                a = getRandomInt(50, 500);
+                b = getRandomInt(50, 500);
+
+                const potentialOperators = [...OPERATORS];
+                shuffleArray(potentialOperators);
+
+                let validEquationFound = false;
+                for (const potentialOp of potentialOperators) {
+                    op = potentialOp;
+                    c = calculateResult(a, b, op);
+
+                    // Validasi: Hasil valid (bukan NaN/Infinity)
+                    // Pengecekan validitas persamaan (seperti bagi 0) sudah di dalam calculateResult
+                    if (isValidResult(c)) {
+                        // Kunci unik (c bisa jadi float)
+                        equationKey = `${a}|${op}|${b}|${c}`;
+                        if (!previousEquations.has(equationKey)) {
+                           validEquationFound = true;
+                           break;
+                        }
+                    }
+                }
+
+                 if (validEquationFound) {
+                     previousEquations.add(equationKey);
+                     if (previousEquations.size > 75) { // Perbesar sedikit history
+                        const firstKey = previousEquations.values().next().value;
+                        previousEquations.delete(firstKey);
+                     }
+                     currentA = a;
+                     currentB = b;
+                     currentC = c; // Simpan C, mungkin float
+                     correctOperator = op;
+                     return true;
+                 }
+                attempts++;
+            }
+            console.warn("Tidak bisa menghasilkan soal unik baru (kesulitan tinggi) setelah 150 percobaan.");
+            return false;
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function calculateResult(a, b, op) {
+            switch (op) {
+                case '+': return a + b;
+                case '-': return a - b;
+                case '*': return a * b;
+                case '/':
+                    // Hasil pembagian boleh desimal, cegah bagi dengan 0
+                    return b !== 0 ? a / b : NaN;
+                case '%':
+                    // Cegah modulo dengan 0
+                    return b !== 0 ? a % b : NaN;
+                default: return NaN;
+            }
+        }
+
+        function isValidResult(result) {
+            // Memastikan hasilnya adalah angka yang valid (bukan NaN atau Infinity)
+            return typeof result === 'number' && !isNaN(result) && isFinite(result);
+        }
+
+        // (Fungsi isEquationValid tidak lagi diperlukan secara eksplisit karena validasi utama
+        // terjadi di calculateResult dan isValidResult)
+
+        function displayEquation() {
+            numAElement.textContent = currentA;
+            numBElement.textContent = currentB;
+
+            // Format C: Bulatkan hasil desimal ke 2 angka di belakang koma
+            if (!Number.isInteger(currentC)) {
+                 // Cek apakah pembulatan menghasilkan .00, jika iya tampilkan integer saja
+                 let rounded = parseFloat(currentC.toFixed(2));
+                 numCElement.textContent = Number.isInteger(rounded) ? rounded.toString() : rounded.toFixed(2);
+            } else {
+                 numCElement.textContent = currentC;
+            }
+
+            feedbackElement.textContent = '';
+            feedbackElement.className = 'feedback';
+            feedbackElement.classList.remove('show');
+            operatorButtons.forEach(btn => btn.disabled = false);
+            isWaiting = false;
+
+            equationElement.style.animation = 'none';
+            void equationElement.offsetWidth;
+            equationElement.style.animation = 'slideIn 0.4s ease-out';
+        }
+
+        function updateScoreDisplay() {
+            currentScoreElement.textContent = currentScore;
+            currentScoreElement.style.animation = 'none';
+            void currentScoreElement.offsetWidth;
+            currentScoreElement.style.animation = 'scoreUpdate 0.3s ease-out';
+
+            highScoreElement.textContent = highScore;
+            if (currentScore === highScore && currentScore > 0) {
+                 highScoreElement.style.animation = 'none';
+                 void highScoreElement.offsetWidth;
+                 highScoreElement.style.animation = 'scoreUpdate 0.3s ease-out';
+            }
+        }
+
+        function handleAnswer(selectedOperator) {
+            if (isWaiting) return;
+            isWaiting = true;
+            operatorButtons.forEach(btn => btn.disabled = true);
+            clearTimeout(feedbackTimeout);
+
+            let isCorrect = selectedOperator === correctOperator;
+
+            if (isCorrect) {
+                currentScore++;
+                if (currentScore > highScore) {
+                    highScore = currentScore;
+                    saveHighScore();
+                }
+                feedbackElement.textContent = "Benar!";
+                feedbackElement.className = 'feedback correct show';
+            } else {
+                const correctDisplayOp = DISPLAY_OPERATORS[correctOperator];
+                feedbackElement.textContent = `Salah, jawabannya adalah ${correctDisplayOp}`;
+                feedbackElement.className = 'feedback incorrect show';
+            }
+
+            updateScoreDisplay();
+
+            feedbackTimeout = setTimeout(() => {
+                 nextQuestion();
+            }, 1800); // Beri sedikit waktu lebih lama (1.8 detik) untuk melihat angka besar/desimal
+        }
+
+        function nextQuestion() {
+            const generated = generateEquation();
+            if (generated) {
+               displayEquation();
+            } else {
+               feedbackElement.textContent = "Gagal membuat soal baru. Coba 'Play Again'.";
+               feedbackElement.className = 'feedback incorrect show';
+               operatorButtons.forEach(btn => btn.disabled = true);
+            }
+        }
+
+        function resetGame() {
+             clearTimeout(feedbackTimeout);
+             currentScore = 0;
+             // Tetap biarkan previousEquations agar tidak terlalu cepat mengulang soal yg sama
+             updateScoreDisplay();
+             nextQuestion();
+        }
+
+        function initializeGame() {
+            loadHighScore();
+            operatorButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    handleAnswer(button.dataset.op);
+                });
+            });
+            playAgainButton.addEventListener('click', resetGame);
+            nextQuestion();
+        }
+
+        document.addEventListener('DOMContentLoaded', initializeGame);
+    </script>
+
+</body>
+</html>
